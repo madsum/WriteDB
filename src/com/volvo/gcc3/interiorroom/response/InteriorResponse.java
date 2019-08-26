@@ -9,11 +9,11 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-@XmlRootElement(name = "Features_res")
+@XmlRootElement(name = "StdFeaturesCU_res")
 public class InteriorResponse {
 
     @XmlElement(name = "Error")
-    private long error;
+    private String error;
 
     @XmlElement(name = "StartWeek")
     private long startWeek;
@@ -170,6 +170,15 @@ public class InteriorResponse {
         this.modifiedBy = modifiedBy;
     }
 
+    @XmlTransient
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -178,7 +187,7 @@ public class InteriorResponse {
         result = prime * result + ((commonOptionList == null) ? 0 : commonOptionList.hashCode());
         result = prime * result + dataElement;
         result = prime * result + (int) (endWeek ^ (endWeek >>> 32));
-        result = prime * result + (int) (error ^ (error >>> 32));
+        result = prime * result + ((error == null) ? 0 : error.hashCode());
         result = prime * result + ((interiorRoomList == null) ? 0 : interiorRoomList.hashCode());
         result = prime * result + ((modifiedBy == null) ? 0 : modifiedBy.hashCode());
         result = prime * result + ((modifiedDate == null) ? 0 : modifiedDate.hashCode());
@@ -186,6 +195,19 @@ public class InteriorResponse {
         result = prime * result + ((programMarket == null) ? 0 : programMarket.hashCode());
         result = prime * result + (int) (startWeek ^ (startWeek >>> 32));
         return result;
+    }
+
+    public boolean equals(InteriorResponse otherInteriorResponse) {
+
+        if (this == otherInteriorResponse)
+            return true;
+        if (otherInteriorResponse == null)
+            return false;
+        if (getClass() != otherInteriorResponse.getClass())
+            return false;
+
+        return true;
+
     }
 
     @Override
@@ -211,7 +233,10 @@ public class InteriorResponse {
             return false;
         if (endWeek != other.endWeek)
             return false;
-        if (error != other.error)
+        if (error == null) {
+            if (other.error != null)
+                return false;
+        } else if (!error.equals(other.error))
             return false;
         if (interiorRoomList == null) {
             if (other.interiorRoomList != null)

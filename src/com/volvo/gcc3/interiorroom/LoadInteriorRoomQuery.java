@@ -16,7 +16,7 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
 
 
     private final static String ROOM_ID = "ROOM_ID";
-    private final static String PROGRAM_MARKET = "ROOMPROGRAM_MARKET_ID";
+    private final static String PROGRAM_MARKET = "PROGRAM_MARKET";
     private final static String STR_WEEK_FROM = "STR_WEEK_FROM";
     private final static String STR_WEEK_TO = "STR_WEEK_TO";
     private final static String PNO12 = "PNO12";
@@ -30,16 +30,18 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
     private final static String MODIFIED_BY = "MODIFIED_BY";
 
     private static final String SELECT_MASTER_AND_FEATURE_BY_ALL = "SELECT * FROM INTERIOR_ROOMS_MASTER master "
-        + "JOIN INTERIOR_ROOMS_FEATURES feature on " + "feature.master_room_id = master.room_id " + "WHERE master.pno12 = ? AND "
-        + "master.str_week_from = ? AND " + "master.str_week_to = ?";
+        + "JOIN INTERIOR_ROOMS_FEATURES feature on " + "feature.master_room_id = master.room_id " + "WHERE master.program_market = ? AND master.pno12 = ? "
+        + "AND master.str_week_from = ? AND master.str_week_to = ? ";
 
     private static final String SELECT_INTEIOR_MASTER = "SELECT COUNT(*) FROM INTERIOR_ROOMS_MASTER "
         + "WHERE PROGRAM_MARKET = ? AND PNO12 = ? AND STR_WEEK_FROM = ? AND STR_WEEK_TO = ?";
 
+    private static final String SELECT_INTEIOR_MASTER_BY_PNO12 = "SELECT COUNT(*) FROM INTERIOR_ROOMS_MASTER WHERE PNO12 = ? ";
+
     private static List<InteriorResponse> interiorResponseList = new ArrayList<InteriorResponse>();
 
 
-    public List<InteriorResponse> getInteriorRooms(Connection connection, String programMarket, String pno12, long str_week_from, long str_week_to,
+    public static List<InteriorResponse> getInteriorRooms(Connection connection, String programMarket, String pno12, long str_week_from, long str_week_to,
         List<String> options) {
         PreparedStatement pst = null;
         ResultSet rset = null;
@@ -52,6 +54,8 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
             rset = pst.executeQuery();
             addInteriorResponseList(rset);
             commit(connection);
+            close(rset);
+            close(pst);
             close(connection);
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
@@ -61,6 +65,29 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
         return interiorResponseList;
     }
     
+    public static List<InteriorResponse> getInteriorRooms(Connection connection, InteriorResponse interiorResponse) {
+        PreparedStatement pst = null;
+        ResultSet rset = null;
+        try {
+            pst = connection.prepareStatement(SELECT_MASTER_AND_FEATURE_BY_ALL);
+            pst.setString(1, interiorResponse.getProgramMarket());
+            pst.setString(2, interiorResponse.getPno12());
+            pst.setLong(3, interiorResponse.getStartWeek());
+            pst.setLong(4, interiorResponse.getEndWeek());
+            rset = pst.executeQuery();
+            makeInteriorResponse(rset);
+            // addInteriorResponseList(rset);
+            close(rset);
+            close(pst);
+            commit(connection);
+        } catch (SQLException e) {
+            System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        } catch (Exception e) {
+            System.out.println("SQL select excetion: %s" + e.getMessage());
+        }
+        return interiorResponseList;
+    }
+
     public static boolean isPno12Exist(Connection connection, String programMarket, String pno12, long str_week_from, long str_week_to) {
         PreparedStatement pst = null;
         ResultSet rset = null;
@@ -80,10 +107,101 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
                     retVal = true;
                 }
             }
+            close(rset);
+            close(pst);
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         }
         return retVal;
+    }
+
+    public static boolean isPno12Exist(Connection connection, String pno12) {
+        PreparedStatement pst = null;
+        ResultSet rset = null;
+        boolean retVal = false;
+        try {
+            pst = connection.prepareStatement(SELECT_INTEIOR_MASTER_BY_PNO12);
+            pst.setString(1, pno12);
+            rset = pst.executeQuery();
+            int size = 0;
+            if (rset != null) {
+                rset.last();
+                size = rset.getRow();
+                if (size > 0) {
+                    retVal = true;
+                }
+            }
+            close(rset);
+            close(pst);
+        } catch (SQLException e) {
+            System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        }
+        return retVal;
+    }
+
+    private static void makeInteriorResponse(ResultSet rset) {
+        try {
+            InteriorResponse interiorResponse = new InteriorResponse();
+            String color = null;
+            String upholstrey = null;
+            InteriorRoom interiorRoom = new InteriorRoom();
+            // color = rset.getString(COLOR);
+            while (rset.next()) {
+                interiorResponse.setStartWeek(rset.getLong(STR_WEEK_FROM));
+                interiorResponse.setEndWeek(rset.getLong(STR_WEEK_TO));
+                interiorResponse.setPno12(rset.getString(PNO12));
+                color = rset.getString(COLOR);
+                upholstrey = rset.getString(UPHOLSTERY);
+                int dataElement = rset.getInt(DATA_ELEMENT);
+                interiorRoom.setColor(color);
+                interiorRoom.setUpholstery(upholstrey);
+                addList(rset, color, dataElement, interiorResponse, interiorRoom);
+                while (rset.next()) {
+                    String tcolor = rset.getString(COLOR);
+                    String tupholstrey = rset.getString(UPHOLSTERY);
+                    if (color.equalsIgnoreCase(rset.getString(COLOR)) && upholstrey.equalsIgnoreCase(rset.getString(UPHOLSTERY))) {
+                        addList(rset, color, dataElement, interiorResponse, interiorRoom);
+                    } else {
+                        interiorRoom = new InteriorRoom();
+                        break;
+                    }
+                }
+
+                interiorRoom.setColor(color);
+                interiorRoom.setUpholstery(upholstrey);
+                // interiorResponse.addInteriorRoomList(interiorRoom);
+
+
+
+                // interiorResponse.setDataElement(dataElement);
+                interiorResponse.addInteriorRoomList(interiorRoom);
+
+            }
+        } catch (SQLException e) {
+            System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        }
+    }
+
+    private static void addList(ResultSet rset, String color, int dataElement, InteriorResponse interiorResponse, InteriorRoom interiorRoom) {
+        try {
+
+            if (dataElement == 115 && color.equalsIgnoreCase(InteriorRoomServiceDaoImpl.getCommon())) {
+                String commonfeature = rset.getString(CODE);
+                interiorResponse.addCommonFeatureList(commonfeature);
+                interiorResponse.setDataElement(dataElement);
+            } else if (dataElement == 12 && color.equalsIgnoreCase(InteriorRoomServiceDaoImpl.getCommon())) {
+                interiorResponse.addCommonOptionList(rset.getString(CODE));
+            } else if (dataElement == 115 && !color.equalsIgnoreCase(InteriorRoomServiceDaoImpl.getCommon())) {
+                String feature = rset.getString(CODE);
+                interiorRoom.addFeatureList(feature);
+            } else if (dataElement == 12 && !color.equalsIgnoreCase(InteriorRoomServiceDaoImpl.getCommon())) {
+                String option = rset.getString(CODE);
+                interiorRoom.addOptionList(option);
+            }
+        } catch (SQLException e) {
+            System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        }
+
     }
 
 
@@ -94,7 +212,7 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
      * @param rset
      * 
      */
-    private void addInteriorResponseList(ResultSet rset) {
+    private static void addInteriorResponseList(ResultSet rset) {
         try {
             while (rset.next()) {
                 InteriorResponse interiorResponse = new InteriorResponse();
@@ -117,18 +235,17 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
                     interiorResponse.setDataElement(dataElement);
                 } else if (dataElement == 12 && color.equalsIgnoreCase(InteriorRoomServiceDaoImpl.getCommon())) {
                     interiorResponse.addCommonOptionList(rset.getString(CODE));
-                } else if (dataElement == 115 && !color.equalsIgnoreCase(InteriorRoomServiceDaoImpl.getCommon()) && !upholstrey.equalsIgnoreCase(
-                    InteriorRoomServiceDaoImpl.getCommon())) {
+                } else if (dataElement == 115 && !color.equalsIgnoreCase(InteriorRoomServiceDaoImpl.getCommon())) {
                     String feature = rset.getString(CODE);
                     interiorRoom.addFeatureList(feature);
-                } else if (dataElement == 12 && !color.equalsIgnoreCase(InteriorRoomServiceDaoImpl.getCommon()) && !upholstrey.equalsIgnoreCase(
-                    InteriorRoomServiceDaoImpl.getCommon())) {
+                } else if (dataElement == 12 && !color.equalsIgnoreCase(InteriorRoomServiceDaoImpl.getCommon())) {
                     String option = rset.getString(CODE);
                     interiorRoom.addOptionList(option);
                 }
                 interiorResponse.setDataElement(dataElement);
                 interiorResponse.setModifiedDate(rset.getDate(MODIFIED_DATE));
                 interiorResponse.setModifiedBy(rset.getString(MODIFIED_BY));
+                interiorResponse.addInteriorRoomList(interiorRoom);
                 interiorResponseList.add(interiorResponse);
             }
         } catch (SQLException e) {
@@ -137,7 +254,7 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
         printInteriorResponseList();
     }
 
-    public void printInteriorResponseList() {
+    public static void printInteriorResponseList() {
         System.out.println("interiorResponseList size: " + interiorResponseList.size());
         for (InteriorResponse interiorResponse : interiorResponseList) {
             printData(interiorResponse);

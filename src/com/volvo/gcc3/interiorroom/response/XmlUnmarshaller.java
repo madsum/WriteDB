@@ -10,7 +10,6 @@ import javax.xml.bind.Unmarshaller;
 public class XmlUnmarshaller {
 
     private JAXBContext jaxbContext;
-    // private InteriorResponse interiorResponse = null;
 
     public XmlUnmarshaller() {
 
@@ -25,8 +24,30 @@ public class XmlUnmarshaller {
         } catch (JAXBException e) {
             e.printStackTrace();
         }
-        // printData(interiorResponse);
         return interiorResponse;
+    }
+
+    public void printSize(InteriorResponse interiorResponse) {
+        System.out.println("StartWeek: " + interiorResponse.getStartWeek());
+        System.out.println("EndWeek: " + interiorResponse.getEndWeek());
+        System.out.println("Pno12: " + interiorResponse.getPno12());
+
+        System.out.println("CommonFeatureList size: " + interiorResponse.getCommonFeatureList());
+
+        System.out.println("CommonOptionList size: " + interiorResponse.getCommonOptionList());
+
+        System.out.println("InteriorRoomList size: " + interiorResponse.getInteriorRoomList());
+
+        List<InteriorRoom> interiorRoomList = interiorResponse.getInteriorRoomList();
+        for (InteriorRoom interiorRoom : interiorRoomList) {
+            System.out.println("Color: " + interiorRoom.getColor());
+            System.out.println("Upholstery: " + interiorRoom.getUpholstery());
+
+            System.out.println("Color: " + interiorRoom.getColor() + " FeatureList size: " + interiorRoom.getFeatureList().size());
+            System.out.println("Color: " + interiorRoom.getColor() + " OptionList size: " + interiorRoom.getOptionList().size());
+
+        }
+
     }
 
     public void printData(InteriorResponse interiorResponse) {
@@ -60,9 +81,7 @@ public class XmlUnmarshaller {
     }
 
     public InteriorResponse getInteriorResponse(String xmlContent, InteriorResponse interiorResponse) {
-        // if (interiorResponse == null) {
-            interiorResponse = UnmarshalXml(xmlContent, interiorResponse);
-        // }
+        interiorResponse = UnmarshalXml(xmlContent, interiorResponse);
         return interiorResponse;
     }
 }

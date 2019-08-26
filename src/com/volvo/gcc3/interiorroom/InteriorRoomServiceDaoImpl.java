@@ -71,7 +71,6 @@ public class InteriorRoomServiceDaoImpl implements InteriorRoomServiceDao {
     public long insertIntoriorRoomData(InteriorResponse interiorResponse) {
 
         long masterRetVal = -1l;
-        // List<MarketInterface> markets =
 
         masterRetVal = addInteriorRoomQuery.insertIntoriorRoomData(connection, interiorResponse);
         return masterRetVal;
@@ -91,7 +90,7 @@ public class InteriorRoomServiceDaoImpl implements InteriorRoomServiceDao {
                 try {
                     connection.commit();
                     connection.close();
-                } catch (SQLException e1) { /* Nothing */
+                } catch (SQLException e1) { // Nothing
                 }
             }
         }
