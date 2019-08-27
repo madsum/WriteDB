@@ -40,7 +40,13 @@ public class InteriorRoomResponseLog extends AbstractQuery {
     private final static String STR_WEEK_FROM = "STR_WEEK_FROM";
     private final static String STR_WEEK_TO = "STR_WEEK_TO";
     private final static String RESPONSE_XML = "RESPONSE_XML";
-
+    private static PreparedStatement prepareInsertInteriorLog = null;
+    private static PreparedStatement prepareSelectInteriorLogByPno12 = null;
+    private static PreparedStatement prepareSelectInteriorLog = null;
+    private static PreparedStatement prepareDeleteInteriorLog = null;
+    private static PreparedStatement prepareDeleteInteriorFeature = null;
+    private static PreparedStatement prepareDeleteInteriorMaster = null;
+    private static PreparedStatement prepareSelectAllInteriorRoom = null;
 
     public InteriorRoomResponseLog() {
 
@@ -62,6 +68,27 @@ public class InteriorRoomResponseLog extends AbstractQuery {
         this.responseXml = responseXml;
     }
 
+    /**
+     * Prepaer statment for interior room log insert once and ues the same always wehn it is done. It is expensive call.
+     * 
+     * @param connection
+     * @throws SQLException
+     * 
+     */
+
+    static PreparedStatement prepareInsertInteriorLog(Connection connection) {
+        if (prepareInsertInteriorLog == null) {
+            try {
+                prepareInsertInteriorLog = connection.prepareStatement(INSERT_INTERIOR_ROOM_LOG);
+            } catch (SQLException e) {
+                String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+                System.out.println(errorMsg);
+            } catch (Exception ex) {
+                System.out.println("Error when insert in master. Handle error " + ex.getMessage());
+            }
+        }
+        return prepareInsertInteriorLog;
+    }
 
     /**
      * Adds data in INTERIOR_ROOMS_MASTER table
@@ -79,7 +106,7 @@ public class InteriorRoomResponseLog extends AbstractQuery {
     public static void insertIntoInteriorLog(Connection connection, InteriorRoomResponseLog interiorRoomLog) {
         PreparedStatement pst = null;
         try {
-            pst = connection.prepareStatement(INSERT_INTERIOR_ROOM_LOG);
+            pst = prepareInsertInteriorLog(connection);
             pst.setString(1, interiorRoomLog.getPno12());
             pst.setLong(2, interiorRoomLog.getStrWeekFrom());
             pst.setLong(3, interiorRoomLog.getStrWeekTo());
@@ -98,12 +125,34 @@ public class InteriorRoomResponseLog extends AbstractQuery {
         }
     }
 
+    /**
+     * Prepaer statment for interior room log select by pno12 once and ues the same always wehn it is done. It is expensive call.
+     * 
+     * @param connection
+     * @throws SQLException
+     * 
+     */
+
+    static PreparedStatement prepareSelectInteriorLogByPno12(Connection connection) {
+        if (prepareSelectInteriorLogByPno12 == null) {
+            try {
+                prepareSelectInteriorLogByPno12 = connection.prepareStatement(SELECT_INTERIOR_ROOM_LOG_BY_PNO12);
+            } catch (SQLException e) {
+                String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+                System.out.println(errorMsg);
+            } catch (Exception ex) {
+                System.out.println("Error when insert in master. Handle error " + ex.getMessage());
+            }
+        }
+        return prepareSelectInteriorLogByPno12;
+    }
+
     public static boolean isPno12ExistInInteriorRoomLog(Connection connection, InteriorRoomResponseLog interiorRoomLog) {
         PreparedStatement pst = null;
         ResultSet rset = null;
         boolean retVal = false;
         try {
-            pst = connection.prepareStatement(SELECT_INTERIOR_ROOM_LOG_BY_PNO12);
+            pst = prepareSelectInteriorLogByPno12(connection);
             pst.setString(1, interiorRoomLog.getPno12());
             rset = pst.executeQuery();
             if (rset.next()) {
@@ -119,12 +168,34 @@ public class InteriorRoomResponseLog extends AbstractQuery {
         return retVal;
     }
 
+    /**
+     * Prepaer statment for interior room log select once and ues the same always wehn it is done. It is expensive call.
+     * 
+     * @param connection
+     * @throws SQLException
+     * 
+     */
+
+    static PreparedStatement prepareSelectInteriorLog(Connection connection) {
+        if (prepareSelectInteriorLog == null) {
+            try {
+                prepareSelectInteriorLog = connection.prepareStatement(SELECT_INTERIOR_ROOM_LOG);
+            } catch (SQLException e) {
+                String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+                System.out.println(errorMsg);
+            } catch (Exception ex) {
+                System.out.println("Error when insert in master. Handle error " + ex.getMessage());
+            }
+        }
+        return prepareSelectInteriorLog;
+    }
+
     public static boolean isInteriorRoomLogExist(Connection connection, InteriorRoomResponseLog interiorRoomLog) {
         PreparedStatement pst = null;
         ResultSet rset = null;
         boolean retVal = false;
         try {
-            pst = connection.prepareStatement(SELECT_INTERIOR_ROOM_LOG);
+            pst = prepareSelectInteriorLog(connection);
             pst.setString(1, interiorRoomLog.getPno12());
             pst.setLong(2, interiorRoomLog.getStrWeekFrom());
             pst.setLong(3, interiorRoomLog.getStrWeekTo());
@@ -147,6 +218,28 @@ public class InteriorRoomResponseLog extends AbstractQuery {
 
     public void compareInteriorRoomLog(InteriorRoomResponseLog inputInteriorRoomLog, InteriorRoomResponseLog dbInteriorRoomLog) {
         inputInteriorRoomLog.equals(dbInteriorRoomLog);
+    }
+
+    /**
+     * Prepaer statment for interior room log delete once and ues the same always wehn it is done. It is expensive call.
+     * 
+     * @param connection
+     * @throws SQLException
+     * 
+     */
+
+    static PreparedStatement prepareDeleteInteriorLog(Connection connection) {
+        if (prepareDeleteInteriorLog == null) {
+            try {
+                prepareDeleteInteriorLog = connection.prepareStatement(DELETE_INTERIOR_ROOM_LOG);
+            } catch (SQLException e) {
+                String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+                System.out.println(errorMsg);
+            } catch (Exception ex) {
+                System.out.println("Error when insert in master. Handle error " + ex.getMessage());
+            }
+        }
+        return prepareDeleteInteriorLog;
     }
 
     public static boolean deleteInteriorRoomLog(Connection connection, InteriorRoomResponseLog interiorRoomLog) {
@@ -177,12 +270,34 @@ public class InteriorRoomResponseLog extends AbstractQuery {
         return retVal;
     }
 
+    /**
+     * Prepaer statment for interior room feature delete once and ues the same always wehn it is done. It is expensive call.
+     * 
+     * @param connection
+     * @throws SQLException
+     * 
+     */
+
+    static PreparedStatement prepareDeleteInteriorFeature(Connection connection) {
+        if (prepareDeleteInteriorFeature == null) {
+            try {
+                prepareDeleteInteriorFeature = connection.prepareStatement(DELETE_INTERIOR_ROOMS_FEATURES);
+            } catch (SQLException e) {
+                String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+                System.out.println(errorMsg);
+            } catch (Exception ex) {
+                System.out.println("Error when insert in master. Handle error " + ex.getMessage());
+            }
+        }
+        return prepareDeleteInteriorFeature;
+    }
+
     public static boolean deleteInteriorFeatures(Connection connection, String pno12) {
         PreparedStatement pst = null;
         boolean retVal = false;
         ResultSet rset = null;
         try {
-            pst = connection.prepareStatement(DELETE_INTERIOR_ROOMS_FEATURES);
+            pst = prepareDeleteInteriorFeature(connection);
             pst.setString(1, pno12);
             rset = pst.executeQuery();
             if (rset.next()) {
@@ -199,12 +314,34 @@ public class InteriorRoomResponseLog extends AbstractQuery {
         return retVal;
     }
 
+    /**
+     * Prepaer statment for interior room log delete once and ues the same always wehn it is done. It is expensive call.
+     * 
+     * @param connection
+     * @throws SQLException
+     * 
+     */
+
+    static PreparedStatement prepareDeleteInteriorMaster(Connection connection) {
+        if (prepareDeleteInteriorMaster == null) {
+            try {
+                prepareDeleteInteriorMaster = connection.prepareStatement(DELETE_INTERIOR_ROOMS_MASTER);
+            } catch (SQLException e) {
+                String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+                System.out.println(errorMsg);
+            } catch (Exception ex) {
+                System.out.println("Error when insert in master. Handle error " + ex.getMessage());
+            }
+        }
+        return prepareDeleteInteriorMaster;
+    }
+
     public static boolean deleteInteriorMaster(Connection connection, String pno12) {
         PreparedStatement pst = null;
         boolean retVal = false;
         ResultSet rset = null;
         try {
-            pst = connection.prepareStatement(DELETE_INTERIOR_ROOMS_MASTER);
+            pst = prepareDeleteInteriorMaster(connection);
             pst.setString(1, pno12);
             rset = pst.executeQuery();
             if (rset.next()) {
@@ -253,6 +390,29 @@ public class InteriorRoomResponseLog extends AbstractQuery {
         }
         return retVal;
     }
+
+    /**
+     * Prepaer statment for select all interior room log once and ues the same always wehn it is done. It is expensive call.
+     * 
+     * @param connection
+     * @throws SQLException
+     * 
+     */
+
+    static PreparedStatement prepareSelectAllInteriorRoom(Connection connection) {
+        if (prepareSelectAllInteriorRoom == null) {
+            try {
+                prepareSelectAllInteriorRoom = connection.prepareStatement(SELECT_INTERIOR_ROOM_LOG_ALL);
+            } catch (SQLException e) {
+                String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+                System.out.println(errorMsg);
+            } catch (Exception ex) {
+                System.out.println("Error when insert in master. Handle error " + ex.getMessage());
+            }
+        }
+        return prepareSelectAllInteriorRoom;
+    }
+
 
     public static void getInteriorRoomLogAll(Connection connection) {
         PreparedStatement pst = null;
@@ -312,8 +472,6 @@ public class InteriorRoomResponseLog extends AbstractQuery {
                 Blob xmlBlob = rset.getBlob(RESPONSE_XML);
                 String responseXml = new String(xmlBlob.getBytes(1l, (int) xmlBlob.length()));
                 interiorRoomLog.setResponseXml(responseXml);
-                // addInteriorRoomLogs(interiorRoomLog);
-                // addInteriorResponseList(responseXml);
             }
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());

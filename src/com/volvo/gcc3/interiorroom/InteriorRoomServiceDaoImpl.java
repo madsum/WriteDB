@@ -30,6 +30,7 @@ public class InteriorRoomServiceDaoImpl implements InteriorRoomServiceDao {
     private int startWeek = 202017;
     private int endWeek = 202035;
     private static String common = "common";
+
     private static List<FailedInteriorRoomRequest> FailedInteriorRoomRequests = new ArrayList<FailedInteriorRoomRequest>();
 
     static String xmlContent = "<Features_res><StartWeek>202017</StartWeek><EndWeek>202035</EndWeek><Pno12>ABCDEEX</Pno12><FeatureList><Feature><Code>5050</Code></Feature></FeatureList><OptionList><Option>9090</Option></OptionList><CUList><CU><Col>1000</Col><Uph>XXXX</Uph><FeatureList><Feature><Code>1000</Code></Feature></FeatureList><OptionList><Option><Code>104888</Code><state>available</state></Option></OptionList></CU><CU><Col>20000</Col><Uph>AAA</Uph><FeatureList><Feature><Code>20000</Code></Feature></FeatureList><OptionList><Option><Code>2222</Code><state>optional</state></Option></OptionList></CU></CUList></Features_res>";
@@ -46,7 +47,7 @@ public class InteriorRoomServiceDaoImpl implements InteriorRoomServiceDao {
         interiorRoomBatch.fillInteriorDetailsFromCache();
         System.out.println("InteriorDetails size: " + interiorRoomBatch.getInteriorDetailsList().size());
         for (InteriorDetails interiorDetails : interiorRoomBatch.getInteriorDetailsList()) {
-            addInteriorRoomQuery.insertIntoInteriorMaster(connection, interiorDetails);
+            addInteriorRoomQuery.batchInsertIntoInteriorMaster(connection, interiorDetails);
             System.out.println("PNO12: " + interiorDetails.getPno12());
             System.out.println("Str week: " + interiorDetails.getStrWeekFrom());
             System.out.println("End week: " + interiorDetails.getStrWeekTo());
@@ -72,7 +73,7 @@ public class InteriorRoomServiceDaoImpl implements InteriorRoomServiceDao {
 
         long masterRetVal = -1l;
 
-        masterRetVal = addInteriorRoomQuery.insertIntoriorRoomData(connection, interiorResponse);
+        masterRetVal = addInteriorRoomQuery.insertIntoriorMasuterData(connection, interiorResponse, true);
         return masterRetVal;
     }
 
@@ -101,7 +102,7 @@ public class InteriorRoomServiceDaoImpl implements InteriorRoomServiceDao {
     }
 
     public void saveInteriorRooms(int programMarket, String pno12, long str_week_from, long str_week_to, List<String> options) {
-        addInteriorRoomQuery.insertIntoriorRoomData(connection, interiorResponse);
+        addInteriorRoomQuery.insertIntoriorMasuterData(connection, interiorResponse, true);
     }
 
     public static String getCommon() {

@@ -48,6 +48,8 @@ public class InteriorResponse {
     @XmlTransient
     private String modifiedBy;
 
+    @XmlTransient
+    private String common = "common";
 
     public InteriorResponse() {
     }
@@ -177,6 +179,15 @@ public class InteriorResponse {
 
     public void setError(String error) {
         this.error = error;
+    }
+
+    @XmlTransient
+    public String getCommon() {
+        return common;
+    }
+
+    public void setCommon(String common) {
+        this.common = common;
     }
 
     @Override
