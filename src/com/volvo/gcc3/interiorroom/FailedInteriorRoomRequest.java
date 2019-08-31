@@ -16,6 +16,7 @@ public class FailedInteriorRoomRequest extends AbstractQuery {
     private InteriorResponse interiorResponse;
 
     static PreparedStatement prepareInsertFaildInteriorRoom = null;
+
     private static final String INSERT_FAILED_INTERIOR_ROOM = "INSERT INTO FAILED_INTERIOR_ROOM"
         + "(PROGRAM_MARKET, PNO12, STR_WEEK_FROM, STR_WEEK_TO, ERROR_LOG, ERROR_CODE, MODIFIED_DATE, LOG_TIME ) "
         + "VALUES(?, ?, ?, ?, ?, ?, SYSDATE, SYSTIMESTAMP)";
@@ -24,7 +25,7 @@ public class FailedInteriorRoomRequest extends AbstractQuery {
 
     }
 
-    public FailedInteriorRoomRequest(Connection connection, String programMarket, String pno12, long strWeekFrom, long strWeekTo, String dbErroLog,
+    public FailedInteriorRoomRequest(String programMarket, String pno12, long strWeekFrom, long strWeekTo, String dbErroLog,
         long dbErrorCode) {
         super();
         this.programMarket = programMarket;
@@ -35,7 +36,7 @@ public class FailedInteriorRoomRequest extends AbstractQuery {
         this.dbErrorCode = dbErrorCode;
     }
 
-    public FailedInteriorRoomRequest(Connection connection, InteriorResponse interiorResponse, String dbErroLog, long dbErrorCode) {
+    public FailedInteriorRoomRequest(InteriorResponse interiorResponse, String dbErroLog, long dbErrorCode) {
         super();
         this.interiorResponse = interiorResponse;
         this.dbErroLog = dbErroLog;
@@ -73,7 +74,6 @@ public class FailedInteriorRoomRequest extends AbstractQuery {
             pst.setString(2, pno12);
             pst.setLong(3, startWeek);
             pst.setLong(4, endWeek);
-            // pst.setBytes(5, xmlContent.getBytes());
             pst.setString(5, dbErroLog);
             pst.setLong(6, dbErrorCode);
             pst.executeUpdate();
@@ -102,7 +102,6 @@ public class FailedInteriorRoomRequest extends AbstractQuery {
             pst.setLong(6, dbErrorCode);
             pst.executeUpdate();
             System.out.println("failed inteiror room insert commited");
-            // close(pst);
         } catch (SQLException e) {
             try {
                 connection.rollback();
@@ -168,4 +167,7 @@ public class FailedInteriorRoomRequest extends AbstractQuery {
         this.interiorResponse = interiorResponse;
     }
 
+    public static PreparedStatement setPrepareInsertFaildInteriorRoom(PreparedStatement pst) {
+        return prepareInsertFaildInteriorRoom = pst;
+    }
 }

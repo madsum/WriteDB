@@ -14,8 +14,6 @@ public class InteriorDetails {
     private String color;
     private String upholstery;
     private String programMarket;
-    private long dbErroCode = 0l;
-    private String dbErroLog;
 
     public InteriorDetails(String pno12, long strWeekFrom, long strWeekTo, String color, String upholstery, long dbErrorCode, String dbErrorLog) {
 
@@ -24,9 +22,6 @@ public class InteriorDetails {
         this.strWeekTo = strWeekTo;
         this.color = color;
         this.upholstery = upholstery;
-        this.dbErroCode = dbErrorCode;
-        this.dbErroLog = dbErrorLog;
-
     }
 
     public InteriorDetails() {
@@ -136,22 +131,6 @@ public class InteriorDetails {
 
     public void setProgramMarket(String programMarket) {
         this.programMarket = programMarket;
-    }
-
-    public long getDbErroCode() {
-        return dbErroCode;
-    }
-
-    public void setDbErroCode(long dbErroCode) {
-        this.dbErroCode = dbErroCode;
-    }
-
-    public String getDbErroLog() {
-        return dbErroLog;
-    }
-
-    public void setDbErroLog(String dbErroLog) {
-        this.dbErroLog = dbErroLog;
     }
 
 }

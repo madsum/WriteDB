@@ -64,6 +64,7 @@ public abstract class AbstractQuery {
         if (statement != null) {
             try {
                 statement.close();
+                statement = null;
             } catch (SQLException e) {
                 // Do nothing
             }
@@ -80,6 +81,7 @@ public abstract class AbstractQuery {
         if (statement != null) {
             try {
                 statement.close();
+                statement = null;
             } catch (SQLException e) {
                 // Do nothing
             }
@@ -96,6 +98,7 @@ public abstract class AbstractQuery {
         if (rs != null) {
             try {
                 rs.close();
+                rs = null;
             } catch (SQLException e) {
                 // Do nothing
             }
@@ -112,6 +115,7 @@ public abstract class AbstractQuery {
         if (connection != null) {
             try {
                 connection.close();
+                connection = null;
             } catch (SQLException e) {
                 // Do nothing
             }

@@ -40,16 +40,13 @@ public class AddInteriorRoomQuery extends AbstractQuery {
      */
     public static long insertIntoriorMasuterData(Connection connection, InteriorResponse interiorResponse, boolean firstTry) {
         try {
-            /*
             masterKey = insertIntoInteriorMaster(connection, interiorResponse.getProgramMarket(), interiorResponse.getStartWeek(),
-                interiorResponse.getEndWeek(), interiorResponse.getPno12(), InteriorRoomServiceDaoImpl.getCommon(), InteriorRoomServiceDaoImpl.getCommon());
-             */
-            masterKey = insertIntoInteriorMaster(connection, interiorResponse, firstTry);
-
+                interiorResponse.getEndWeek(), interiorResponse.getPno12(), interiorResponse.getCommon(), interiorResponse.getCommon(), interiorResponse,
+                firstTry);
             System.out.println("Master insert primary key: " + masterKey);
             if (masterKey == uniqeIndexErrorCode) {
                 System.out.println("This row already exit in the table. Just inore it and retrun");
-                // return masterKey;
+                return masterKey;
             } else {
                 long retVal = insertCommonFeaturData(connection, interiorResponse, masterKey);
                 if (retVal == -1) {
@@ -57,7 +54,8 @@ public class AddInteriorRoomQuery extends AbstractQuery {
                 }
                 for (InteriorRoom interiorRoom : interiorResponse.getInteriorRoomList()) {
                     masterKey = insertIntoInteriorMaster(connection, interiorResponse.getProgramMarket(), interiorResponse.getStartWeek(),
-                        interiorResponse.getEndWeek(), interiorResponse.getPno12(), interiorRoom.getColor(), interiorRoom.getUpholstery());
+                        interiorResponse.getEndWeek(), interiorResponse.getPno12(), interiorRoom.getColor(), interiorRoom.getUpholstery(), interiorResponse,
+                        firstTry);
 
                     System.out.println("Master insert primary key: " + masterKey);
                     if (masterKey == uniqeIndexErrorCode) {
@@ -71,20 +69,17 @@ public class AddInteriorRoomQuery extends AbstractQuery {
                     }
                 }
             }
-            /*
-            // we try to insert all failed interiorDetails into database. If it still fails, we save it into database.
-            for (FailedInteriorRoomRequest failedInteriorRoomRequest : failedInteriorRoomRequestList) {
-                // batchInsertIntoInteriorMaster(connection, interiorDetails);
-                FailedInteriorRoomRequest.insertIntoFaildInteriorRoom(connection, failedInteriorRoomRequest);
-            }
-            */
         } catch (Exception ex) {
             System.out.println("Error when insert in master. Handle error " + ex.getMessage());
         } finally {
             close(prepareInsertInteriorMaster);
+            prepareInsertInteriorMaster = null;
             close(prepareInsertInteriorFeature);
+            prepareInsertInteriorFeature = null;
             FailedInteriorRoomRequest.closePrepareInsertFaildInteriorRoom();
+            FailedInteriorRoomRequest.setPrepareInsertFaildInteriorRoom(null);
             close(connection);
+            connection = null;
         }
         return masterKey;
     }
@@ -126,7 +121,7 @@ public class AddInteriorRoomQuery extends AbstractQuery {
      */
 
     static public Long insertIntoInteriorMaster(Connection connection, String programMaster, long startWeek, long endWeek, String pno12, String color,
-        String upholstrey) {
+        String upholstrey, InteriorResponse interiorResponse, boolean fristTry) {
         Long retValue = -1l;
         PreparedStatement pst = null;
         ResultSet rset = null;
@@ -146,83 +141,29 @@ public class AddInteriorRoomQuery extends AbstractQuery {
                 retValue = rset.getLong(1);
                 System.out.println("Master Primary key: " + retValue);
             }
-            close(rset);
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException e1) {
                 // nothing
             }
-
             // if e.getSQLState() returns 23000. It means integrity constraint violation of the unique index
             retValue = convertErroCode(e.getSQLState());
-            String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
-            System.out.println(errorMsg);
+            String errorLog = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            System.out.println(errorLog);
             // we ingnore the error of constraint violation of the unique index
-            // if (retValue != uniqeIndexErrorCode) {
-            failedInteriorRoomRequestList.add(new FailedInteriorRoomRequest(connection, programMaster, pno12, startWeek, endWeek, errorMsg, retValue));
-            // }
+            if (retValue != uniqeIndexErrorCode) {
+                // first time we save faild request in a list. Second time we save failed reqeust into database to analize later.
+                if (fristTry) {
+                    failedInteriorRoomRequestList.add(new FailedInteriorRoomRequest(interiorResponse, errorLog, retValue));
+                } else {
+                    FailedInteriorRoomRequest.insertIntoFaildInteriorRoom(connection, interiorResponse, errorLog, retValue);
+                }
+            }
         } catch (Exception ex) {
             System.out.println("Error when insert in master. Handle error " + ex.getMessage());
-        }
-        return retValue;
-    }
-
-    /**
-     * Adds data in INTERIOR_ROOMS_MASTER table
-     * 
-     * @param startWeek
-     * @param endWeek
-     * @param pno12
-     * @param color
-     * @param upholstery
-     * @throws DatabaseConnectionException
-     * @throws SQLException
-     * 
-     */
-
-    static public Long insertIntoInteriorMaster(Connection connection, InteriorResponse interiorResponse, boolean fristTry) {
-        Long retValue = -1l;
-        PreparedStatement pst = null;
-        ResultSet rset = null;
-        try {
-            pst = prepareInsertInteriorMaster(connection);
-            pst.setString(1, interiorResponse.getProgramMarket());
-            pst.setLong(2, interiorResponse.getStartWeek());
-            pst.setLong(3, interiorResponse.getEndWeek());
-            pst.setString(4, interiorResponse.getPno12());
-            pst.setString(5, interiorResponse.getCommon());
-            pst.setString(6, interiorResponse.getCommon());
-            pst.executeUpdate();
-            rset = pst.getGeneratedKeys();
-            connection.commit();
-            System.out.println("master insert commited");
-            if (rset.next()) {
-                retValue = rset.getLong(1);
-                System.out.println("Master Primary key: " + retValue);
-            }
+        } finally {
             close(rset);
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException e1) {
-                // nothing
-            }
-
-            // if e.getSQLState() returns 23000. It means integrity constraint violation of the unique index
-            retValue = convertErroCode(e.getSQLState());
-            String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
-            System.out.println(errorMsg);
-            // we ingnore the error of constraint violation of the unique index
-            // if (retValue != uniqeIndexErrorCode) {
-                    if(fristTry){
-                        failedInteriorRoomRequestList.add(new FailedInteriorRoomRequest(connection, interiorResponse, errorMsg, retValue));
-                    }else{
-                        FailedInteriorRoomRequest.insertIntoFaildInteriorRoom(connection, interiorResponse, errorMsg, retValue );
-                    }
-            // }
-        } catch (Exception ex) {
-            System.out.println("Error when insert in master. Handle error " + ex.getMessage());
         }
         return retValue;
     }
@@ -238,14 +179,12 @@ public class AddInteriorRoomQuery extends AbstractQuery {
      * 
      */
 
-    static public Long batchInsertIntoInteriorMaster(Connection connection, InteriorDetails interiorDetails) {
-        // String key[] = { ROOM_ID };
-        Long retValue = -1l;
+    static public Long batchInsertIntoInteriorMaster(Connection connection, InteriorDetails interiorDetails, boolean firstTry) {
+        long retValue = -1l;
         PreparedStatement pst = null;
         ResultSet rset = null;
         try {
             pst = prepareInsertInteriorMaster(connection);
-            // pst = connection.prepareStatement(INSERT_INTERIOR_ROOMS_MASTER, key);
             pst.setString(1, interiorDetails.getProgramMarket());
             pst.setLong(2, interiorDetails.getStrWeekFrom());
             pst.setLong(3, interiorDetails.getStrWeekTo());
@@ -260,85 +199,35 @@ public class AddInteriorRoomQuery extends AbstractQuery {
                 retValue = rset.getLong(1);
                 System.out.println("Master Primary key: " + retValue);
             }
-            close(rset);
-            // close(pst);
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException e1) {
                 // nothing
             }
-
             // if e.getSQLState() returns 23000. It means integrity constraint violation of the unique index
             retValue = convertErroCode(e.getSQLState());
-            String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
-            System.out.println(errorMsg);
+            String errorLog = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            System.out.println(errorLog);
+
             // we ingnore the error of constraint violation of the unique index
             if (retValue != uniqeIndexErrorCode) {
-                interiorDetails.setDbErroCode(retValue);
-                interiorDetails.setDbErroLog(errorMsg);
-                failedInteriorRoomRequestList.add(new FailedInteriorRoomRequest(connection, interiorDetails.getProgramMarket(), interiorDetails.getPno12(),
-                    interiorDetails.getStrWeekFrom(), interiorDetails.getStrWeekTo(), errorMsg, retValue));
-                // failedInteriorDetailsList.add(interiorDetails);
+                // first time we save faild request in a list. Second time we save failed reqeust into database to analize later.
+                InteriorResponse interiorResponse = new InteriorResponse(interiorDetails.getProgramMarket(), interiorDetails.getStrWeekFrom(),
+                    interiorDetails.getStrWeekTo(), interiorDetails.getPno12());
+                if (firstTry) {
+                    failedInteriorRoomRequestList.add(new FailedInteriorRoomRequest(interiorResponse, errorLog, retValue));
+                } else {
+                    FailedInteriorRoomRequest.insertIntoFaildInteriorRoom(connection, interiorResponse, errorLog, retValue);
+                }
             }
         } catch (Exception ex) {
             System.out.println("Error when insert in master. Handle error " + ex.getMessage());
+        } finally {
+            close(rset);
         }
         return retValue;
     }
-
-    /*
-    public static void insertFailedInteriorDetails(Connection connection, FailedInteriorRoomRequest failedInteriorRoomRequest) {
-        FailedInteriorRoomRequest.insertIntoFaildInteriorRoom(connection, failedInteriorRoomRequest);
-    }
-*/
-    /**
-     * Make FailedInteriorRoomRequest and insert into FAILED_INTERIOR_ROOM
-     * 
-     * @param connection
-     * @param programMarket
-     * @param pno12
-     * @param startWeek
-     * @param endWeek
-     * @param xmlContent
-     * @throws DatabaseConnectionException
-     * @throws SQLException
-     * 
-     */
-/*
-    private static FailedInteriorRoomRequest makeFailedInteriorRoomRequest(Connection connection, String programMarket, String pno12, long strWeekFrom,
-        long strWeekTo, String dbErroLog, long dbErrorCode) {
-        FailedInteriorRoomRequest failedInteriorRoomRequest = new FailedInteriorRoomRequest(connection, programMarket, pno12, strWeekFrom, strWeekTo, dbErroLog,
-            dbErrorCode);
-        return failedInteriorRoomRequest;
-    }
-*/
-
-    /**
-     * Make FailedInteriorRoomRequest and insert into FAILED_INTERIOR_ROOM
-     * 
-     * @param connection
-     * @param interiorDetails
-     * @throws DatabaseConnectionException
-     * @throws SQLException
-     * 
-     */
-
-    private static FailedInteriorRoomRequest makeFailedInteriorRoomRequest(Connection connection, InteriorDetails interiorDetails) {
-        FailedInteriorRoomRequest failedInteriorRoomRequest = new FailedInteriorRoomRequest(connection, interiorDetails.getProgramMarket(),
-            interiorDetails.getPno12(), interiorDetails.getStrWeekFrom(), interiorDetails.getStrWeekTo(), interiorDetails.getDbErroLog(),
-            interiorDetails.getDbErroCode());
-        return failedInteriorRoomRequest;
-    }
-
-    /**
-     * Calls helper method to add common data in INTERIOR_ROOMS_FEATURES table
-     * 
-     * @param interiorResponse
-     * @param masterId
-     * @return retVal
-     * 
-     */
 
     private static long insertCommonFeaturData(Connection connection, InteriorResponse interiorResponse, long masterId) {
         long retVal = -1l;
@@ -423,11 +312,9 @@ public class AddInteriorRoomQuery extends AbstractQuery {
     private static long insertFeatureData(Connection connection, long masterId, int dataElement, String code) {
         long retVal = -1l;
         PreparedStatement pst = null;
-        // PreparedStatement pst2 = null;
         ResultSet rset = null;
         try {
             pst = prepareInsertInteriorFeature(connection);
-            // pst2 = connection.prepareStatement(INSERT_INTERIOR_ROOMS_FEATURES);
             pst.setLong(1, masterId);
             pst.setInt(2, dataElement);
             pst.setString(3, code);
@@ -438,8 +325,6 @@ public class AddInteriorRoomQuery extends AbstractQuery {
             } else {
                 retVal = -1l;
             }
-            close(rset);
-            // close(pst);
         } catch (SQLException e) {
             try {
                 connection.rollback();
@@ -449,57 +334,12 @@ public class AddInteriorRoomQuery extends AbstractQuery {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception ex) {
             System.out.println("Error when insert in master. Handle error " + ex.getMessage());
+        } finally {
+            close(rset);
         }
         return retVal;
     }
 
-    /**
-     * Adds data in INTERIOR_ROOMS_FEATURES table
-     * 
-     * @param masterId
-     * @param dataElement
-     * @param state
-     * @param color
-     * @param common
-     * @throws SQLException
-     * 
-     */
-
-    /*
-     * private static long insertFeatureData(Connection connection, long masterId, String color, String upholstrey, int dataElement, String state, String code)
-     * {
-     * long retVal = -1l;
-     * PreparedStatement pst = null;
-     * ResultSet rset = null;
-     * try {
-     * pst = connection.prepareStatement(INSERT_INTERIOR_ROOMS_FEATURES);
-     * pst.setLong(1, masterId);
-     * pst.setString(2, color);
-     * pst.setString(3, upholstrey);
-     * pst.setInt(4, dataElement);
-     * pst.setString(5, state);
-     * pst.setString(6, code);
-     * rset = pst.executeQuery();
-     * commit(connection);
-     * if (rset.next() == true) {
-     * retVal = 1l;
-     * } else {
-     * retVal = -1l;
-     * }
-     * close(rset);
-     * close(pst);
-     * } catch (SQLException e) {
-     * try {
-     * connection.rollback();
-     * } catch (SQLException e1) {
-     * // Nothing }
-     * System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
-     * } catch (Exception ex) {
-     * System.out.println("Error when insert in master. Handle error " + ex.getMessage());
-     * }
-     * return retVal;
-     * }
-     */
     private static Long convertErroCode(String error) {
         long errorCode = -1l;
         try {
@@ -518,4 +358,11 @@ public class AddInteriorRoomQuery extends AbstractQuery {
         AddInteriorRoomQuery.failedInteriorRoomRequestList = failedInteriorRoomRequestList;
     }
 
+    public static void closeAllResource() {
+        close(prepareInsertInteriorMaster);
+        prepareInsertInteriorMaster = null;
+        close(prepareInsertInteriorFeature);
+        prepareInsertInteriorFeature = null;
+        failedInteriorRoomRequestList.clear();
+    }
 }

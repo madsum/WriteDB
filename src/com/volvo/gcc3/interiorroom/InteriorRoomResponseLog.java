@@ -14,12 +14,22 @@ public class InteriorRoomResponseLog extends AbstractQuery {
 
     private static final String CLASS_NAME = InteriorRoomResponseLog.class.getName();
 
-    String pno12;
+    private String pno12;
     private long strWeekFrom;
     private long strWeekTo;
     private String responseXml;
-    private static Connection connection;
     private static List<InteriorRoomResponseLog> interiorRoomLogs = new ArrayList<InteriorRoomResponseLog>();
+    private final static String PNO12 = "PNO12";
+    private final static String STR_WEEK_FROM = "STR_WEEK_FROM";
+    private final static String STR_WEEK_TO = "STR_WEEK_TO";
+    private final static String RESPONSE_XML = "RESPONSE_XML";
+    private static PreparedStatement prepareInsertInteriorLog = null;
+    private static PreparedStatement prepareSelectInteriorLogByPno12 = null;
+    private static PreparedStatement prepareSelectInteriorLog = null;
+    private static PreparedStatement prepareDeleteInteriorLog = null;
+    private static PreparedStatement prepareDeleteInteriorFeature = null;
+    private static PreparedStatement prepareDeleteInteriorMaster = null;
+    private static PreparedStatement prepareSelectAllInteriorRoom = null;
 
     private static final String INSERT_INTERIOR_ROOM_LOG = "INSERT INTO INTERIOR_ROOM_LOG"
         + "(PNO12, STR_WEEK_FROM, STR_WEEK_TO, RESPONSE_XML, MODIFIED_DATE, LOG_TIME ) " + "VALUES(?, ?, ?, ?, SYSDATE, SYSTIMESTAMP)";
@@ -36,20 +46,7 @@ public class InteriorRoomResponseLog extends AbstractQuery {
 
     private static final String DELETE_INTERIOR_ROOMS_MASTER = "DELETE FROM INTERIOR_ROOMS_MASTER WHERE PNO12  = ?";
 
-    private final static String PNO12 = "PNO12";
-    private final static String STR_WEEK_FROM = "STR_WEEK_FROM";
-    private final static String STR_WEEK_TO = "STR_WEEK_TO";
-    private final static String RESPONSE_XML = "RESPONSE_XML";
-    private static PreparedStatement prepareInsertInteriorLog = null;
-    private static PreparedStatement prepareSelectInteriorLogByPno12 = null;
-    private static PreparedStatement prepareSelectInteriorLog = null;
-    private static PreparedStatement prepareDeleteInteriorLog = null;
-    private static PreparedStatement prepareDeleteInteriorFeature = null;
-    private static PreparedStatement prepareDeleteInteriorMaster = null;
-    private static PreparedStatement prepareSelectAllInteriorRoom = null;
-
     public InteriorRoomResponseLog() {
-
     }
 
     public InteriorRoomResponseLog(String pno12, long strWeekFrom, long strWeekTo, String responseXml) {
@@ -114,14 +111,11 @@ public class InteriorRoomResponseLog extends AbstractQuery {
             pst.execute();
             connection.commit();
             System.out.println("Interior Log insert commited");
-            close(pst);
         } catch (SQLException e) {
             String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
             System.out.println(errorMsg);
         } catch (Exception ex) {
             System.out.println("Error when insert in interior log. Handle error " + ex.getMessage());
-        } finally {
-
         }
     }
 
@@ -158,12 +152,12 @@ public class InteriorRoomResponseLog extends AbstractQuery {
             if (rset.next()) {
                 retVal = true;
             }
-            close(rset);
-            close(pst);
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception e) {
             System.out.format("SQL State: %s\n", e.getMessage());
+        } finally {
+            close(rset);
         }
         return retVal;
     }
@@ -203,15 +197,13 @@ public class InteriorRoomResponseLog extends AbstractQuery {
             InteriorRoomResponseLog dbInteriorRoomLog = makeInteriorRoomLog(rset);
             if (interiorRoomLog.equals(dbInteriorRoomLog)) {
                 retVal = true;
-            }else{
-                retVal = false;
             }
-            close(rset);
-            close(pst);
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception e) {
             System.out.format("SQL State: %s\n", e.getMessage());
+        } finally {
+            close(rset);
         }
         return retVal;
     }
@@ -247,18 +239,18 @@ public class InteriorRoomResponseLog extends AbstractQuery {
         boolean retVal = false;
         ResultSet rset = null;
         try {
-            pst = connection.prepareStatement(DELETE_INTERIOR_ROOM_LOG);
+            pst = prepareDeleteInteriorLog(connection);
             pst.setString(1, interiorRoomLog.getPno12());
             rset = pst.executeQuery();
             if (rset.next()) {
                 retVal = true;
             }
-            close(rset);
-            close(pst);
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception e) {
             System.out.format("SQL State: %s\n", e.getMessage());
+        } finally {
+            close(rset);
         }
         if (retVal) {
             retVal = deleteInteriorFeatures(connection, interiorRoomLog.getPno12());
@@ -303,13 +295,12 @@ public class InteriorRoomResponseLog extends AbstractQuery {
             if (rset.next()) {
                 retVal = true;
             }
-            close(rset);
-            close(pst);
-
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception e) {
             System.out.format("SQL State: %s\n", e.getMessage());
+        } finally {
+            close(rset);
         }
         return retVal;
     }
@@ -347,35 +338,12 @@ public class InteriorRoomResponseLog extends AbstractQuery {
             if (rset.next()) {
                 retVal = true;
             }
-            close(rset);
-            close(pst);
-
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception e) {
             System.out.format("SQL State: %s\n", e.getMessage());
-        }
-        return retVal;
-    }
-
-    public static boolean deleteInteriorMaster2(Connection connection, String pno12) {
-        PreparedStatement pst = null;
-        boolean retVal = false;
-        ResultSet rset = null;
-        try {
-            pst = connection.prepareStatement(DELETE_INTERIOR_ROOMS_MASTER);
-            pst.setString(1, pno12);
-            rset = pst.executeQuery();
-            if (rset.next()) {
-                retVal = true;
-            }
+        } finally {
             close(rset);
-            close(pst);
-
-        } catch (SQLException e) {
-            System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
-        } catch (Exception e) {
-            System.out.format("SQL State: %s\n", e.getMessage());
         }
         return retVal;
     }
@@ -418,49 +386,37 @@ public class InteriorRoomResponseLog extends AbstractQuery {
         PreparedStatement pst = null;
         ResultSet rset = null;
         try {
-            pst = connection.prepareStatement(SELECT_INTERIOR_ROOM_LOG_ALL);
+            pst = prepareSelectAllInteriorRoom(connection);
             rset = pst.executeQuery();
             addInteriorResponseList(rset);
-            commit(connection);
-            close(connection);
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception e) {
             System.out.format("SQL State: %s\n", e.getMessage());
+        } finally {
+            close(rset);
+            close(connection);
         }
     }
 
+    public static void closeAllResource() {
+        close(prepareInsertInteriorLog);
+        prepareInsertInteriorLog = null;
+        close(prepareSelectInteriorLogByPno12);
+        prepareSelectInteriorLogByPno12 = null;
+        close(prepareSelectInteriorLog);
+        prepareSelectInteriorLog = null;
+        close(prepareDeleteInteriorLog);
+        prepareDeleteInteriorLog = null;
+        close(prepareDeleteInteriorFeature);
+        prepareDeleteInteriorFeature = null;
+        close(prepareDeleteInteriorMaster);
+        prepareDeleteInteriorMaster = null;
+        close(prepareSelectAllInteriorRoom);
+        prepareSelectAllInteriorRoom = null;
+        interiorRoomLogs.clear();
+    }
 
-    /**
-     * Internal helper mentod to set all value
-     * 
-     * @param rset
-     * 
-     */
-    /*
-     * public static List<InteriorResponse> InteriorResponseList = new ArrayList<InteriorResponse>();
-     * 
-     * public static void addInteriorResponseList(String responseXml) {
-     * XmlUnmarshaller xmlUnmarshaller = new XmlUnmarshaller();
-     * InteriorResponse interiorResponse = new InteriorResponse();
-     * interiorResponse = xmlUnmarshaller.getInteriorResponse(responseXml, interiorResponse);
-     * InteriorResponseList.add(interiorResponse);
-     * }
-     * 
-     * 
-     * public static void compareInteriorResponseList() {
-     * InteriorResponse nextInteriorResponse = null;
-     * int index = 1;
-     * for (InteriorResponse currentinteriorResponse : InteriorResponseList) {
-     * // prevInteriorResponse = currentinteriorResponse;
-     * if (index < InteriorResponseList.size()) {
-     * nextInteriorResponse = InteriorResponseList.get(index);
-     * }
-     * System.out.println(" currentinteriorResponse.equals(nextInteriorResponse)  " + currentinteriorResponse.equals(nextInteriorResponse));
-     * index++;
-     * }
-     * }
-     */
 
     private static InteriorRoomResponseLog makeInteriorRoomLog(ResultSet rset) {
         InteriorRoomResponseLog interiorRoomLog = new InteriorRoomResponseLog();
@@ -492,14 +448,12 @@ public class InteriorRoomResponseLog extends AbstractQuery {
                 String responseXml = new String(xmlBlob.getBytes(1l, (int) xmlBlob.length()));
                 interiorRoomLog.setResponseXml(responseXml);
                 addInteriorRoomLogs(interiorRoomLog);
-                // addInteriorResponseList(responseXml);
             }
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception ex) {
             System.out.format("SQL State: %s\n", ex.getMessage());
         }
-        // printInteriorRoomLogList();
     }
 
 
@@ -595,5 +549,4 @@ public class InteriorRoomResponseLog extends AbstractQuery {
             return false;
         return true;
     }
-
 }

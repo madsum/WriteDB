@@ -2,7 +2,6 @@ package com.volvo.gcc3.interiorroom;
 
 public class InteriorDetails {
 
-    // String pno12, long str_week_from, long str_week_to, String color, String upholstery
     private int roomID;
     private int dataElement;
     private String state;
@@ -16,13 +15,11 @@ public class InteriorDetails {
     private String programMarket;
 
     public InteriorDetails(String pno12, long strWeekFrom, long strWeekTo, String color, String upholstery) {
-
         this.pno12 = pno12;
         this.strWeekFrom = strWeekFrom;
         this.strWeekTo = strWeekTo;
         this.color = color;
         this.upholstery = upholstery;
-
     }
 
     public InteriorDetails() {

@@ -9,6 +9,9 @@ import javax.xml.bind.annotation.XmlTransient;
 
 public class InteriorRoom {
 
+    @XmlTransient
+    private long masterRoomId;
+
     @XmlElement(name = "Col")
     private String color;
     @XmlElement(name = "Uph")
@@ -25,6 +28,14 @@ public class InteriorRoom {
     @XmlTransient
     private int dataElement;
 
+    @XmlTransient
+    public long getMasterRoomId() {
+        return masterRoomId;
+    }
+
+    public void setMasterRoomId(long masterRoomId) {
+        this.masterRoomId = masterRoomId;
+    }
 
     @XmlTransient
     public String getColor() {

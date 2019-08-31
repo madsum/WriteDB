@@ -3,6 +3,7 @@ package com.volvo.gcc3.interiorroom.response;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -11,6 +12,9 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @XmlRootElement(name = "StdFeaturesCU_res")
 public class InteriorResponse {
+
+    @XmlTransient
+    private long roomId;
 
     @XmlElement(name = "Error")
     private String error;
@@ -49,16 +53,26 @@ public class InteriorResponse {
     private String modifiedBy;
 
     @XmlTransient
-    private String common = "common";
+    private final String common = "common";
 
     public InteriorResponse() {
     }
 
-    public InteriorResponse(int startWeek, int endWeek, String pno12) {
+    public InteriorResponse(String programMarket, long startWeek, long endWeek, String pno12) {
         super();
+        this.programMarket = programMarket;
         this.startWeek = startWeek;
         this.endWeek = endWeek;
         this.pno12 = pno12;
+    }
+
+    @XmlTransient
+    public long getRoomId() {
+        return roomId;
+    }
+
+    public void setRoomId(long roomId) {
+        this.roomId = roomId;
     }
 
     @XmlTransient
@@ -133,8 +147,20 @@ public class InteriorResponse {
         if (interiorRoomList == null) {
             interiorRoomList = new ArrayList<InteriorRoom>();
         }
-        interiorRoomList.add(interiorRoom);
+        // we only add uniqu interiorRoom in the list. If interiorRoom exit no need to add again.
+        if (interiorRoomList.size() > 0) {
+            // we have to modify the list while itrating the list so use ListIterator
+            ListIterator<InteriorRoom> iterator = interiorRoomList.listIterator();
+            while (iterator.hasNext()) {
+                if (!iterator.next().getColor().equalsIgnoreCase(interiorRoom.getColor())) {
+                    iterator.set(interiorRoom);
+                }
+            }
+        } else { // first interiorRoom in the list
+            interiorRoomList.add(interiorRoom);
+        }
     }
+
 
     @XmlTransient
     public int getDataElement() {
@@ -184,10 +210,6 @@ public class InteriorResponse {
     @XmlTransient
     public String getCommon() {
         return common;
-    }
-
-    public void setCommon(String common) {
-        this.common = common;
     }
 
     @Override
