@@ -3,7 +3,6 @@ package com.volvo.gcc3.interiorroom.response;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -39,9 +38,6 @@ public class InteriorResponse {
     @XmlElementWrapper(name = "CUList")
     @XmlElement(name = "CU")
     private List<InteriorRoom> interiorRoomList = new ArrayList<InteriorRoom>();
-
-    @XmlTransient
-    private int dataElement;
 
     @XmlTransient
     private String programMarket;
@@ -147,30 +143,33 @@ public class InteriorResponse {
         if (interiorRoomList == null) {
             interiorRoomList = new ArrayList<InteriorRoom>();
         }
-        // we only add uniqu interiorRoom in the list. If interiorRoom exit no need to add again.
-        if (interiorRoomList.size() > 0) {
-            // we have to modify the list while itrating the list so use ListIterator
-            ListIterator<InteriorRoom> iterator = interiorRoomList.listIterator();
-            while (iterator.hasNext()) {
-                if (!iterator.next().getColor().equalsIgnoreCase(interiorRoom.getColor())) {
-                    iterator.set(interiorRoom);
-                }
-            }
-        } else { // first interiorRoom in the list
+        // we don't add dublicate interiorRoom in the list. Only add unique interiorRoom
+        if (!isInteriorRoomExist(interiorRoom)) {
             interiorRoomList.add(interiorRoom);
         }
     }
 
-
-    @XmlTransient
-    public int getDataElement() {
-        return dataElement;
+    boolean isInteriorRoomExist(InteriorRoom interiorRoom) {
+        boolean retVal = false;
+        for (InteriorRoom elementInteriorRoom : interiorRoomList) {
+            if (elementInteriorRoom.getColor().equalsIgnoreCase(interiorRoom.getColor())) {
+                retVal = true;
+                break;
+            }
+        }
+        return retVal;
     }
 
-    public void setDataElement(int dataElement) {
-        this.dataElement = dataElement;
-    }
-
+    /*
+     * @XmlTransient
+     * public int getDataElement() {
+     * return dataElement;
+     * }
+     * 
+     * public void setDataElement(int dataElement) {
+     * this.dataElement = dataElement;
+     * }
+     */
     @XmlTransient
     public String getProgramMarket() {
         return programMarket;
@@ -218,7 +217,6 @@ public class InteriorResponse {
         int result = 1;
         result = prime * result + ((commonFeatureList == null) ? 0 : commonFeatureList.hashCode());
         result = prime * result + ((commonOptionList == null) ? 0 : commonOptionList.hashCode());
-        result = prime * result + dataElement;
         result = prime * result + (int) (endWeek ^ (endWeek >>> 32));
         result = prime * result + ((error == null) ? 0 : error.hashCode());
         result = prime * result + ((interiorRoomList == null) ? 0 : interiorRoomList.hashCode());
@@ -261,8 +259,6 @@ public class InteriorResponse {
             if (other.commonOptionList != null)
                 return false;
         } else if (!commonOptionList.equals(other.commonOptionList))
-            return false;
-        if (dataElement != other.dataElement)
             return false;
         if (endWeek != other.endWeek)
             return false;

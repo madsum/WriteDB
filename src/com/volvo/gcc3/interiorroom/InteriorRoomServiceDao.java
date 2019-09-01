@@ -7,20 +7,12 @@ import com.volvo.gcc3.interiorroom.response.InteriorResponse;
 
 public interface InteriorRoomServiceDao {
 
-    // String getInteriorResponse(String pno12);
+    InteriorResponse getInteriorRooms(String programMarket, String pno12, long strWeekFrom, long strWeekTo, List<String> options);
 
-    void closeConnection();
+    void saveInteriorRooms(String programMarket, String pno12, long strWeekFrom, long strWeekTo, List<String> options);
 
-    // String getInteriorResponse();
+    Map<String, List<String>> getInteriorRoomFeaturs(String programMarket, String pno12, long strWeekFrom, long strWeekTo, String color, String upholstery);
 
-    // long insertIntoriorRoomData();
-
-    List<InteriorResponse> getInteriorRooms(String programMarket, String pno12, long str_week_from, long str_week_to, List<String> options);
-
-    void saveInteriorRooms(int programMarket, String pno12, long str_week_from, long str_week_to, List<String> options);
-
-    Map<String, List<String>> getInteriorRooms(String programMarket, String pno12, long str_week_from, long str_week_to, String color, String upholstery,
-        List<String> options);
-
+    void batchSaveInteriorRooms();
 
 }

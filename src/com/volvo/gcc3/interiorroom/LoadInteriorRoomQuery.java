@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,23 +15,20 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
 
     private static final String CLASS_NAME = LoadInteriorRoomQuery.class.getName();
 
-
-    private final static String ROOM_ID = "ROOM_ID";
     private final static String PROGRAM_MARKET = "PROGRAM_MARKET";
     private final static String STR_WEEK_FROM = "STR_WEEK_FROM";
     private final static String STR_WEEK_TO = "STR_WEEK_TO";
     private final static String PNO12 = "PNO12";
     private final static String COLOR = "COLOR";
     private final static String UPHOLSTERY = "UPHOLSTERY";
-    private final static String MASTER_ROOM_ID = "MASTER_ROOM_ID";
     private final static String DATA_ELEMENT = "DATA_ELEMENT";
     private final static String STATE = "STATE";
     private final static String CODE = "CODE";
     private final static String MODIFIED_DATE = "MODIFIED_DATE";
     private final static String MODIFIED_BY = "MODIFIED_BY";
 
-    private static final String SELECT_MASTER_AND_FEATURE_BY_ALL = "SELECT * FROM INTERIOR_ROOMS_MASTER master "
-        + "JOIN INTERIOR_ROOMS_FEATURES feature on " + "feature.master_room_id = master.room_id " + "WHERE master.program_market = ? AND master.pno12 = ? "
+    private static final String SELECT_MASTER_AND_FEATURE_BY_ALL = "SELECT * FROM INTERIOR_ROOMS_MASTER master " + "JOIN INTERIOR_ROOMS_FEATURES feature on "
+        + "feature.master_room_id = master.room_id " + "WHERE master.program_market = ? AND master.pno12 = ? "
         + "AND master.str_week_from = ? AND master.str_week_to = ? ";
 
     private static final String COUNT_INTEIOR_MASTER = "SELECT COUNT(*) FROM INTERIOR_ROOMS_MASTER "
@@ -40,12 +36,7 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
 
     private static final String COUNT_INTEIOR_MASTER_BY_PNO12 = "SELECT COUNT(*) FROM INTERIOR_ROOMS_MASTER WHERE PNO12 = ? ";
 
-    private static final String SELECT_FEATURE_OPTION_BY_COLOR_UPHOLSTREY = "SELECT feature.code, feature.data_element, master.color, master.upholstery FROM INTERIOR_ROOMS_MASTER master "
-        + "JOIN INTERIOR_ROOMS_FEATURES feature on feature.master_room_id = master.room_id " + "WHERE (master.program_market = ? AND master.pno12 = ? AND "
-        + "master.str_week_from = ? AND master.str_week_to = ?) AND "
-        + "(master.COLOR = ? OR master.COLOR = 'common') AND (master.UPHOLSTERY = ? OR master.UPHOLSTERY = 'common')";
-
-    private static final String SELECT_FEATURE_OPTION_BY_COLOR_UPHOLSTREY2 = "SELECT * FROM INTERIOR_ROOMS_MASTER master "
+    private static final String SELECT_FEATURE_OPTION_BY_COLOR_UPHOLSTREY = "SELECT * FROM INTERIOR_ROOMS_MASTER master "
         + "JOIN INTERIOR_ROOMS_FEATURES feature on feature.master_room_id = master.room_id " + "WHERE (master.program_market = ? AND master.pno12 = ? AND "
         + "master.str_week_from = ? AND master.str_week_to = ?) AND "
         + "(master.COLOR = ? OR master.COLOR = 'common') AND (master.UPHOLSTERY = ? OR master.UPHOLSTERY = 'common')";
@@ -78,19 +69,19 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
         return prepareSelectAll;
     }
 
-    public static List<InteriorResponse> getInteriorRooms(Connection connection, String programMarket, String pno12, long str_week_from, long str_week_to,
+    public static InteriorResponse getInteriorRooms(Connection connection, String programMarket, String pno12, long strWeekFrom, long strWeekTo,
         List<String> options) {
         PreparedStatement pst = null;
         ResultSet rset = null;
-        List<InteriorResponse> interiorResponseList = null;
+        InteriorResponse interiorResponse = null;
         try {
             pst = prepareSelectAll(connection);
             pst.setString(1, programMarket);
             pst.setString(2, pno12);
-            pst.setLong(3, str_week_from);
-            pst.setLong(4, str_week_to);
+            pst.setLong(3, strWeekFrom);
+            pst.setLong(4, strWeekTo);
             rset = pst.executeQuery();
-            interiorResponseList = addInteriorResponseList(rset);
+            interiorResponse = makeInteriorResponse(rset);
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception e) {
@@ -99,13 +90,12 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
             close(rset);
             close(connection);
         }
-        return interiorResponseList;
+        return interiorResponse;
     }
-    
-    public static List<InteriorResponse> getInteriorRooms(Connection connection, InteriorResponse interiorResponse) {
+
+    public static InteriorResponse getInteriorRooms(Connection connection, InteriorResponse interiorResponse) {
         PreparedStatement pst = null;
         ResultSet rset = null;
-        List<InteriorResponse> interiorResponseList = null;
         try {
             pst = prepareSelectAll(connection);
             pst.setString(1, interiorResponse.getProgramMarket());
@@ -113,7 +103,7 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
             pst.setLong(3, interiorResponse.getStartWeek());
             pst.setLong(4, interiorResponse.getEndWeek());
             rset = pst.executeQuery();
-            interiorResponseList = addInteriorResponseList(rset);
+            interiorResponse = makeInteriorResponse(rset);
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception e) {
@@ -122,7 +112,7 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
             close(rset);
             close(connection);
         }
-        return interiorResponseList;
+        return interiorResponse;
     }
 
     /**
@@ -136,7 +126,7 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
     static PreparedStatement prepareSelectFeatures(Connection connection) {
         if (prepareSelectFeatures == null) {
             try {
-                prepareSelectFeatures = connection.prepareStatement(SELECT_FEATURE_OPTION_BY_COLOR_UPHOLSTREY2);
+                prepareSelectFeatures = connection.prepareStatement(SELECT_FEATURE_OPTION_BY_COLOR_UPHOLSTREY);
             } catch (SQLException e) {
                 String errorMsg = String.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
                 System.out.println(errorMsg);
@@ -147,22 +137,21 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
         return prepareSelectFeatures;
     }
 
-
-    public static Map<String, List<String>> getInteriorRooms(Connection connection, String programMarket, String pno12, long str_week_from, long str_week_to,
+    public static Map<String, List<String>> getInteriorRoomFeaturs(Connection connection, String programMarket, String pno12, long strWeekFrom, long strWeekTo,
         String color, String upholstery) {
-        List<InteriorResponse> InteriorResponseList = null;
+        InteriorResponse interiorResponse = null;
         PreparedStatement pst = null;
         ResultSet rset = null;
         try {
             pst = prepareSelectFeatures(connection);
             pst.setString(1, programMarket);
             pst.setString(2, pno12);
-            pst.setLong(3, str_week_from);
-            pst.setLong(4, str_week_to);
+            pst.setLong(3, strWeekFrom);
+            pst.setLong(4, strWeekTo);
             pst.setString(5, color);
             pst.setString(6, upholstery);
             rset = pst.executeQuery();
-            InteriorResponseList = addInteriorResponseList(rset);
+            interiorResponse = makeInteriorResponse(rset);
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         } catch (Exception e) {
@@ -170,8 +159,7 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
         } finally {
             close(rset);
         }
-        InteriorResponse properInteriorResponse = makeProperInteriorResponse(InteriorResponseList);
-        return makeInteriorFeatureResponse(properInteriorResponse);
+        return makeInteriorFeatureResponse(interiorResponse);
     }
 
     /**
@@ -287,62 +275,64 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
         prepareSelectFeatures = null;
     }
 
-
     /**
-     * We add each database row in a list of InteriorResponse
+     * We makeInteriorResponse from database row
      * 
      * @param rset
      * @return interiorResponseList
      * 
      */
-    private static List<InteriorResponse> addInteriorResponseList(ResultSet rset) {
-        List<InteriorResponse> interiorResponseList = new ArrayList<InteriorResponse>();
+    private static InteriorResponse makeInteriorResponse(ResultSet rset) {
+        InteriorResponse interiorResponse = new InteriorResponse();
         try {
             while (rset.next()) {
-                InteriorResponse interiorResponse = new InteriorResponse();
-                interiorResponse.setRoomId(rset.getLong(ROOM_ID));
                 interiorResponse.setProgramMarket(rset.getString(PROGRAM_MARKET));
                 interiorResponse.setStartWeek(rset.getLong(STR_WEEK_FROM));
                 interiorResponse.setEndWeek(rset.getLong(STR_WEEK_TO));
                 interiorResponse.setPno12(rset.getString(PNO12));
 
-
-                InteriorRoom interiorRoom = new InteriorRoom();
                 String color = rset.getString(COLOR);
                 String upholstrey = rset.getString(UPHOLSTERY);
-                long masterRoomId = rset.getLong(MASTER_ROOM_ID);
                 int dataElement = rset.getInt(DATA_ELEMENT);
+                InteriorRoom interiorRoom = isInteriorRoomExist(interiorResponse, color);
                 interiorRoom.setColor(color);
                 interiorRoom.setUpholstery(upholstrey);
-                interiorRoom.setMasterRoomId(masterRoomId);
-                interiorResponse.setDataElement(dataElement);
+                interiorRoom.setDataElement(dataElement);
 
                 if (dataElement == 115 && color.equalsIgnoreCase(interiorResponse.getCommon())) {
                     String commonfeature = rset.getString(CODE);
                     interiorResponse.addCommonFeatureList(commonfeature);
-                    interiorResponse.setDataElement(dataElement);
                 } else if (dataElement == 12 && color.equalsIgnoreCase(interiorResponse.getCommon())) {
-                    interiorResponse.addCommonOptionList(rset.getString(CODE));
+                    String commonOption = rset.getString(CODE);
+                    interiorResponse.addCommonOptionList(commonOption);
                 } else if (dataElement == 115 && !color.equalsIgnoreCase(interiorResponse.getCommon())) {
-                    String feature = rset.getString(CODE);
-                    interiorRoom.addFeatureList(feature);
+                    String individualFeature = rset.getString(CODE);
+                    interiorRoom.addFeatureList(individualFeature);
                 } else if (dataElement == 12 && !color.equalsIgnoreCase(interiorResponse.getCommon())) {
-                    String option = rset.getString(CODE);
-                    interiorRoom.addOptionList(option);
+                    String individualOption = rset.getString(CODE);
+                    interiorRoom.addOptionList(individualOption);
                 }
                 interiorResponse.setModifiedDate(rset.getDate(MODIFIED_DATE));
                 interiorResponse.setModifiedBy(rset.getString(MODIFIED_BY));
                 interiorResponse.addInteriorRoomList(interiorRoom);
-                interiorResponseList.add(interiorResponse);
             }
         } catch (SQLException e) {
             System.out.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
         }
-        return interiorResponseList;
+        return interiorResponse;
     };
 
+    static InteriorRoom isInteriorRoomExist(InteriorResponse interiorResponse, String color) {
+        for (InteriorRoom elementInteriorRoom : interiorResponse.getInteriorRoomList()) {
+            if (elementInteriorRoom.getColor().equalsIgnoreCase(color)) {
+                return elementInteriorRoom;
+            }
+        }
+        return new InteriorRoom();
+    }
+
     /**
-     * VBS wants a map which contains list of each type of feature and options
+     * VBS wants a map which contains list as value of each type of feature and options
      * 
      * @param interiorResponse
      * @return featureOptionMap
@@ -363,63 +353,6 @@ public class LoadInteriorRoomQuery extends AbstractQuery {
             featureOptionMap.put(keyIndividualOption, intriorRoom.getOptionList());
         }
         return featureOptionMap;
-    }
-
-    /**
-     * From database we fetch data as join of 2 table row. We have break into proper InteriorResponse. So that can easily manipulate data.
-     * 
-     * @param interiorResponseList
-     * @return actualInteriorResponse
-     * 
-     */
-
-    public static InteriorResponse makeProperInteriorResponse(List<InteriorResponse> interiorResponseList) {
-        InteriorResponse actualInteriorResponse = new InteriorResponse();
-        InteriorRoom commonInteriorRoom = new InteriorRoom();
-        InteriorRoom individualInteriorRoom = new InteriorRoom();
-        for (InteriorResponse interiorResponse : interiorResponseList) {
-            actualInteriorResponse.setError(interiorResponse.getError());
-            actualInteriorResponse.setStartWeek(interiorResponse.getStartWeek());
-            actualInteriorResponse.setEndWeek(interiorResponse.getEndWeek());
-            actualInteriorResponse.setPno12(interiorResponse.getPno12());
-            actualInteriorResponse.setProgramMarket(interiorResponse.getProgramMarket());
-            
-
-            for( InteriorRoom interiorRoom : interiorResponse.getInteriorRoomList()){
-
-                if( (interiorResponse.getCommon().equalsIgnoreCase(interiorRoom.getColor()) && 
-                    (interiorResponse.getDataElement() == 115))) {
-                    for (String featrue : interiorResponse.getCommonFeatureList()) {
-                        actualInteriorResponse.addCommonFeatureList(featrue);
-                     }
-                    commonInteriorRoom.setColor(interiorRoom.getColor());
-                    commonInteriorRoom.setUpholstery(interiorRoom.getUpholstery());
-                    actualInteriorResponse.addInteriorRoomList(commonInteriorRoom);
-                } else if ((interiorResponse.getCommon().equalsIgnoreCase(interiorRoom.getColor()) && (interiorResponse.getDataElement() == 12))) {
-                    for (String option : interiorResponse.getCommonOptionList()) {
-                        actualInteriorResponse.addCommonOptionList(option);
-                    }
-                    commonInteriorRoom.setColor(interiorRoom.getColor());
-                    commonInteriorRoom.setUpholstery(interiorRoom.getUpholstery());
-                    actualInteriorResponse.addInteriorRoomList(commonInteriorRoom);
-                } else if ((!interiorResponse.getCommon().equalsIgnoreCase(interiorRoom.getColor()) && (interiorResponse.getDataElement() == 115))) {
-                    for (String featuere : interiorRoom.getFeatureList()) {
-                        individualInteriorRoom.addFeatureList(featuere);
-                    }
-                    individualInteriorRoom.setColor(interiorRoom.getColor());
-                    individualInteriorRoom.setUpholstery(interiorRoom.getUpholstery());
-                    actualInteriorResponse.addInteriorRoomList(individualInteriorRoom);
-                } else if ((!interiorResponse.getCommon().equalsIgnoreCase(interiorRoom.getColor()) && (interiorResponse.getDataElement() == 12))) {
-                    for (String option : interiorRoom.getOptionList()) {
-                        individualInteriorRoom.addOptionList(option);
-                    }
-                    individualInteriorRoom.setColor(interiorRoom.getColor());
-                    individualInteriorRoom.setUpholstery(interiorRoom.getUpholstery());
-                    actualInteriorResponse.addInteriorRoomList(individualInteriorRoom);
-                }
-            }
-        }
-        return actualInteriorResponse;
     }
 
     public static void printData(InteriorResponse interiorResponse) {

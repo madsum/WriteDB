@@ -98,8 +98,8 @@ public class InteriorRoom {
 
     @Override
     public String toString() {
-        return "InteriorRoom [color=" + color + ", upholstery=" + upholstery + ", optionList=" + optionList + ", featureList=" + featureList + ", dataElement="
-            + dataElement + "]";
+        return "InteriorRoom [masterRoomId=" + masterRoomId + ", color=" + color + ", upholstery=" + upholstery + ", optionList=" + optionList
+            + ", featureList=" + featureList + ", dataElement=" + dataElement + "]";
     }
 
     @Override
@@ -109,6 +109,7 @@ public class InteriorRoom {
         result = prime * result + ((color == null) ? 0 : color.hashCode());
         result = prime * result + dataElement;
         result = prime * result + ((featureList == null) ? 0 : featureList.hashCode());
+        result = prime * result + (int) (masterRoomId ^ (masterRoomId >>> 32));
         result = prime * result + ((optionList == null) ? 0 : optionList.hashCode());
         result = prime * result + ((upholstery == null) ? 0 : upholstery.hashCode());
         return result;
@@ -135,6 +136,8 @@ public class InteriorRoom {
                 return false;
         } else if (!featureList.equals(other.featureList))
             return false;
+        if (masterRoomId != other.masterRoomId)
+            return false;
         if (optionList == null) {
             if (other.optionList != null)
                 return false;
@@ -147,5 +150,4 @@ public class InteriorRoom {
             return false;
         return true;
     }
-
 }

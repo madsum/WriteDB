@@ -9,13 +9,14 @@ import javax.xml.bind.Unmarshaller;
 
 public class XmlUnmarshaller {
 
-    private JAXBContext jaxbContext;
+    private static JAXBContext jaxbContext;
 
     public XmlUnmarshaller() {
 
     }
 
-    public InteriorResponse UnmarshalXml(String xmlContent, InteriorResponse interiorResponse) {
+    public static InteriorResponse UnmarshalXml(String xmlContent) {
+        InteriorResponse interiorResponse = null;
         try {
             StringReader sr = new StringReader(xmlContent);
             jaxbContext = JAXBContext.newInstance(InteriorResponse.class);
@@ -80,8 +81,8 @@ public class XmlUnmarshaller {
         }
     }
 
-    public InteriorResponse getInteriorResponse(String xmlContent, InteriorResponse interiorResponse) {
-        interiorResponse = UnmarshalXml(xmlContent, interiorResponse);
+    public static InteriorResponse getInteriorResponse(String xmlContent) {
+        InteriorResponse interiorResponse = UnmarshalXml(xmlContent);
         return interiorResponse;
     }
 }
