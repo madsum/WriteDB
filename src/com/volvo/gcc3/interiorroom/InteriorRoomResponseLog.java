@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.volvo.gcc3.interiorroom.response.InteriorResponse;
+import com.volvo.gcc3.interiorroom.request.response.InteriorResponse;
 
 public class InteriorRoomResponseLog extends AbstractQuery {
 

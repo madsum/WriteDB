@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.volvo.gcc3.interiorroom.batch.InteriorDetails;
-import com.volvo.gcc3.interiorroom.response.InteriorResponse;
-import com.volvo.gcc3.interiorroom.response.InteriorRoom;
+import com.volvo.gcc3.interiorroom.request.response.InteriorResponse;
+import com.volvo.gcc3.interiorroom.request.response.InteriorRoom;
 
 public class AddInteriorRoomQuery extends AbstractQuery {
 

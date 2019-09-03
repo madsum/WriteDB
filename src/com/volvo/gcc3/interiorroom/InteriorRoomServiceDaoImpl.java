@@ -9,8 +9,8 @@ import java.util.ListIterator;
 import java.util.Map;
 
 import com.volvo.gcc3.interiorroom.batch.InteriorDetails;
-import com.volvo.gcc3.interiorroom.response.InteriorResponse;
-import com.volvo.gcc3.interiorroom.response.XmlUnmarshaller;
+import com.volvo.gcc3.interiorroom.request.response.InteriorResponse;
+import com.volvo.gcc3.interiorroom.request.response.XmlUnmarshaller;
 
 public class InteriorRoomServiceDaoImpl implements InteriorRoomServiceDao {
 
@@ -90,21 +90,21 @@ public class InteriorRoomServiceDaoImpl implements InteriorRoomServiceDao {
     }
 
     public void batchSaveInteriorRooms() {
-/*
-        InteriorRoomResponseLog interiorRoomLog = makeInteriorRoomLog(cpamData);
-        InteriorRoomBatch interiorRoomBatch = new InteriorRoomBatch();
-        interiorRoomBatch.fillInteriorDetailsFromCache();
-        System.out.println("InteriorDetails size: " + interiorRoomBatch.getInteriorDetailsList().size());
-
-        for (InteriorDetails interiorDetails : interiorRoomBatch.getInteriorDetailsList()) {
-            InteriorResponse interiorResponse = new InteriorResponse(interiorDetails.getProgramMarket(), interiorDetails.getStrWeekFrom(),
-                interiorDetails.getStrWeekTo(), interiorDetails.getPno12());
-            AddInteriorRoomQuery.insertIntoriorMasuterData(connection, interiorResponse, true);
-            System.out.println("PNO12: " + interiorDetails.getPno12());
-            System.out.println("Str week: " + interiorDetails.getStrWeekFrom());
-            System.out.println("End week: " + interiorDetails.getStrWeekTo());
-        }
-*/
+        /*
+         * InteriorRoomResponseLog interiorRoomLog = makeInteriorRoomLog(cpamData);
+         * InteriorRoomBatch interiorRoomBatch = new InteriorRoomBatch();
+         * interiorRoomBatch.fillInteriorDetailsFromCache();
+         * System.out.println("InteriorDetails size: " + interiorRoomBatch.getInteriorDetailsList().size());
+         * 
+         * for (InteriorDetails interiorDetails : interiorRoomBatch.getInteriorDetailsList()) {
+         * InteriorResponse interiorResponse = new InteriorResponse(interiorDetails.getProgramMarket(), interiorDetails.getStrWeekFrom(),
+         * interiorDetails.getStrWeekTo(), interiorDetails.getPno12());
+         * AddInteriorRoomQuery.insertIntoriorMasuterData(connection, interiorResponse, true);
+         * System.out.println("PNO12: " + interiorDetails.getPno12());
+         * System.out.println("Str week: " + interiorDetails.getStrWeekFrom());
+         * System.out.println("End week: " + interiorDetails.getStrWeekTo());
+         * }
+         */
         InteriorResponse interiorResponse = initialzeInteriorResponse(cpamData);
         InteriorRoomResponseLog interiorRoomLog = new InteriorRoomResponseLog(interiorResponse.getPno12(), interiorResponse.getStartWeek(),
             interiorResponse.getEndWeek(), cpamData);
@@ -215,14 +215,12 @@ public class InteriorRoomServiceDaoImpl implements InteriorRoomServiceDao {
         return "ok";
     }
 
-    /*
-     * public static InteriorRoomResponseLog makeInteriorRoomLog(String cpamData) {
-     * InteriorResponse interiorResponse = initialzeInteriorResponse(cpamData);
-     * interiorResponse.setProgramMarket(programMarket);
-     * InteriorRoomResponseLog interiorRoomLog = new InteriorRoomResponseLog(interiorResponse.getPno12(), interiorResponse.getStartWeek(),
-     * interiorResponse.getEndWeek(), cpamData);
-     * return interiorRoomLog;
-     * }
-     */
+    public static InteriorRoomResponseLog makeInteriorRoomLog(String cpamData) {
+        InteriorResponse interiorResponse = initialzeInteriorResponse(cpamData);
+        interiorResponse.setProgramMarket(programMarket);
+        InteriorRoomResponseLog interiorRoomLog = new InteriorRoomResponseLog(interiorResponse.getPno12(), interiorResponse.getStartWeek(),
+            interiorResponse.getEndWeek(), cpamData);
+        return interiorRoomLog;
+    }
 
 }

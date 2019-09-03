@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import com.volvo.gcc3.interiorroom.response.InteriorResponse;
+import com.volvo.gcc3.interiorroom.request.response.InteriorResponse;
 
 public class FailedInteriorRoomRequest extends AbstractQuery {
     private String programMarket;

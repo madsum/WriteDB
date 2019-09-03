@@ -1,19 +1,28 @@
-package com.volvo.gcc3.interiorroom.response;
+package com.volvo.gcc3.interiorroom.request.response;
 
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-@XmlRootElement(name = "StdFeaturesCU_res")
+@XmlAccessorType(XmlAccessType.NONE)
+@XmlRootElement(name = "SOAP-ENV:Envelope")
 public class InteriorResponse {
 
     @XmlTransient
     private long roomId;
+
+    @XmlElement(name = "SOAP-ENV:Body")
+    private String soapBody;
+
+    @XmlElement(name = "StdFeaturesCU_res")
+    private String stdFeaturesCuRes;
 
     @XmlElement(name = "Error")
     private String error;
@@ -160,16 +169,7 @@ public class InteriorResponse {
         return retVal;
     }
 
-    /*
-     * @XmlTransient
-     * public int getDataElement() {
-     * return dataElement;
-     * }
-     * 
-     * public void setDataElement(int dataElement) {
-     * this.dataElement = dataElement;
-     * }
-     */
+
     @XmlTransient
     public String getProgramMarket() {
         return programMarket;
@@ -209,6 +209,24 @@ public class InteriorResponse {
     @XmlTransient
     public String getCommon() {
         return common;
+    }
+
+    @XmlTransient
+    public String getSoapBody() {
+        return soapBody;
+    }
+
+    public void setSoapBody(String soapBody) {
+        this.soapBody = soapBody;
+    }
+
+    @XmlTransient
+    public String getStdFeaturesCuRes() {
+        return stdFeaturesCuRes;
+    }
+
+    public void setStdFeaturesCuRes(String stdFeaturesCuRes) {
+        this.stdFeaturesCuRes = stdFeaturesCuRes;
     }
 
     @Override

@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.volvo.gcc3.interiorroom.response.InteriorResponse;
-import com.volvo.gcc3.interiorroom.response.InteriorRoom;
+import com.volvo.gcc3.interiorroom.request.response.InteriorResponse;
+import com.volvo.gcc3.interiorroom.request.response.InteriorRoom;
 
 public class LoadInteriorRoomQuery extends AbstractQuery {
 

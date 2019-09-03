@@ -3,7 +3,7 @@ package com.volvo.gcc3.interiorroom;
 import java.util.List;
 import java.util.Map;
 
-import com.volvo.gcc3.interiorroom.response.InteriorResponse;
+import com.volvo.gcc3.interiorroom.request.response.InteriorResponse;
 
 public interface InteriorRoomServiceDao {
 

@@ -1,4 +1,4 @@
-package com.volvo.gcc3.interiorroom.response;
+package com.volvo.gcc3.interiorroom.request.response;
 
 import java.io.StringReader;
 import java.util.List;
@@ -6,6 +6,7 @@ import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.stream.FactoryConfigurationError;
 
 public class XmlUnmarshaller {
 
@@ -19,10 +20,12 @@ public class XmlUnmarshaller {
         InteriorResponse interiorResponse = null;
         try {
             StringReader sr = new StringReader(xmlContent);
+            // XMLEventReader reader = XMLInputFactory.newFactory().createXMLEventReader(sr);
+            // XMLReaderWithoutNamespace xr = new XMLReaderWithoutNamespace(reader);
             jaxbContext = JAXBContext.newInstance(InteriorResponse.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             interiorResponse = (InteriorResponse) unmarshaller.unmarshal(sr);
-        } catch (JAXBException e) {
+        } catch (JAXBException | FactoryConfigurationError e) {
             e.printStackTrace();
         }
         return interiorResponse;

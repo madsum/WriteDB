@@ -1,4 +1,4 @@
-package com.volvo.gcc3.interiorroom.response;
+package com.volvo.gcc3.interiorroom.request.response;
 
 import java.util.ArrayList;
 import java.util.List;
