@@ -11,6 +11,7 @@ import javax.xml.stream.FactoryConfigurationError;
 public class XmlUnmarshaller {
 
     private static JAXBContext jaxbContext;
+    private static String removeString = " xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"";
 
     public XmlUnmarshaller() {
 
@@ -19,16 +20,30 @@ public class XmlUnmarshaller {
     public static InteriorResponse UnmarshalXml(String xmlContent) {
         InteriorResponse interiorResponse = null;
         try {
+        	System.out.println("Before:- "+xmlContent);
+        	xmlContent = removeSoapHeadTail(xmlContent);
+        	System.out.println("After: "+xmlContent);
             StringReader sr = new StringReader(xmlContent);
             // XMLEventReader reader = XMLInputFactory.newFactory().createXMLEventReader(sr);
             // XMLReaderWithoutNamespace xr = new XMLReaderWithoutNamespace(reader);
             jaxbContext = JAXBContext.newInstance(InteriorResponse.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             interiorResponse = (InteriorResponse) unmarshaller.unmarshal(sr);
+            printData(interiorResponse);
         } catch (JAXBException | FactoryConfigurationError e) {
             e.printStackTrace();
         }
         return interiorResponse;
+    }
+    
+    private static String removeSoapHeadTail(String soapContent) {
+    	String soapHead = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP-ENV:Body>";
+    	String soapTail = "</SOAP-ENV:Body></SOAP-ENV:Envelope>";
+    	soapContent = soapContent.replace(soapHead, "");
+    	soapContent = soapContent.replace(soapTail, "");
+    	return soapContent;
+
+    	 	
     }
 
     public void printSize(InteriorResponse interiorResponse) {
@@ -54,7 +69,7 @@ public class XmlUnmarshaller {
 
     }
 
-    public void printData(InteriorResponse interiorResponse) {
+    public static void printData(InteriorResponse interiorResponse) {
         System.out.println("StartWeek: " + interiorResponse.getStartWeek());
         System.out.println("EndWeek: " + interiorResponse.getEndWeek());
         System.out.println("Pno12: " + interiorResponse.getPno12());

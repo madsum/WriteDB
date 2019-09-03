@@ -11,18 +11,12 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlRootElement(name = "SOAP-ENV:Envelope")
+
+@XmlRootElement(name = "StdFeaturesCU_res")
 public class InteriorResponse {
 
     @XmlTransient
     private long roomId;
-
-    @XmlElement(name = "SOAP-ENV:Body")
-    private String soapBody;
-
-    @XmlElement(name = "StdFeaturesCU_res")
-    private String stdFeaturesCuRes;
 
     @XmlElement(name = "Error")
     private String error;
@@ -209,24 +203,6 @@ public class InteriorResponse {
     @XmlTransient
     public String getCommon() {
         return common;
-    }
-
-    @XmlTransient
-    public String getSoapBody() {
-        return soapBody;
-    }
-
-    public void setSoapBody(String soapBody) {
-        this.soapBody = soapBody;
-    }
-
-    @XmlTransient
-    public String getStdFeaturesCuRes() {
-        return stdFeaturesCuRes;
-    }
-
-    public void setStdFeaturesCuRes(String stdFeaturesCuRes) {
-        this.stdFeaturesCuRes = stdFeaturesCuRes;
     }
 
     @Override
